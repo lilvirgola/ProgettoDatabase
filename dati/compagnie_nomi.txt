@@ -1,6 +1,5 @@
 Volo Azzurro
 Ali del Cielo
-Viaggiatori del Cielo
 Volo Sereno
 Nuvole Bianche
 Roma Air
@@ -30,11 +29,11 @@ Volotea
 Wizz Air
 Alpi Air
 Dolomiti Airways
-Mare Adriatico Airlines
+Mare Airlines
 Toscana Skyways
 Sicilia Express
 Air Europa
-Mediterraneo Airways
+Mediterran Airways
 Trans Atlantico
 Volo Orientale
 Eagle Express
@@ -46,7 +45,7 @@ Green Sky Airways
 Eco Air
 Earth Wings
 Sustainable Skies
-Carbon Neutral Airlines
+Carbon Neutral 
 Planet Friendly Air
 Blue Horizon Eco
 Green Flight
@@ -90,7 +89,7 @@ Stella Polare
 Orizzonte Infinito
 Stratosfera
 Volo Magico
-Viaggio Indimenticabile
+Viaggio
 Air Up
 Cloud Surfer
 Sky Wanderer

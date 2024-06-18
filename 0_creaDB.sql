@@ -2,6 +2,7 @@ CREATE TABLE Compagnia_Aerea(
         idCompagnia CHAR(3) PRIMARY KEY,
         nome VARCHAR (20) NOT NULL
 );
+
 CREATE TABLE Aeroporto(
     codice_aeroporto CHAR(3) PRIMARY KEY,
     citta VARCHAR(20),
@@ -53,7 +54,7 @@ CREATE TABLE Istanza_Tratta(
     data_volo DATE,
     posti_rimanenti INTEGER,
     aereo_usato VARCHAR(10) REFERENCES Aeroplano(codice_aeroplano),
-    PRIMARY KEY (idTratta,data)
+    PRIMARY KEY (idTratta,data_volo)
 );
 
 CREATE TABLE Passeggero(
