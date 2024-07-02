@@ -35,11 +35,11 @@ passeggero_df <- data.frame(idpasseggero = sample(1:1000000, 10000, replace=F),
                           nome=sample(v_nomi, 10000, replace = T),
                           cognome=sample(v_cognomi, 10000, replace = T),
                           numero_documento_identita=sample(genIdNumber(10000),10000))
-#dbWriteTable(con, 
-#             name="passeggero", 
-#             value=passeggero_df, 
-#             append = T, 
-#             row.names=F)
+dbWriteTable(con, 
+            name="passeggero", 
+            value=passeggero_df, 
+            append = T, 
+            row.names=F)
 
 
 
