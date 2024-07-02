@@ -1,0 +1,15 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: database
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres:/var/lib/postgresql/data:Z
+      - ./codice:/root/codice:Z
+    environment:
+      - POSTGRES_PASSWORD=S3cret
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=gestionevoli
