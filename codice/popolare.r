@@ -5,7 +5,7 @@
 # create connection
 library("RPostgreSQL")
 drv <- dbDriver("PostgreSQL")
-con <- dbConnect(drv, dbname="gestionevoli")
+con <- dbConnect(drv, dbname="gestionevoli", user="postgres", password="S3cret")
 set.seed(1234)
 #define function to generate a alphanumeric string range
 # stringrange = function(x,y){
