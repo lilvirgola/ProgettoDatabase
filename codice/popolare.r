@@ -15,6 +15,7 @@ set.seed(1234)
 #     }
 
 
+
 cifre <- gettextf(paste0("%01d"),0:9)
 
 genIdNumber= function(n){
@@ -23,70 +24,105 @@ genIdNumber= function(n){
 		   paste0(c(sample(cifre,2),sample(cifre,2),sample(LETTERS,6),sample(cifre,5)),collapse="")
 	   }))
 }
-
 # set schema to "passeggero"
 dbGetQuery(con, "SET search_path TO public;")
 
 
-# populate table "passeggero"
-v_nomi <- readLines("dati/nomi.txt")
-v_cognomi <- readLines("dati/cognomi.txt")
-passeggero_df <- data.frame(idpasseggero = sample(1:1000000, 10000, replace=F),
-                          nome=sample(v_nomi, 10000, replace = T),
-                          cognome=sample(v_cognomi, 10000, replace = T),
-                          numero_documento_identita=sample(genIdNumber(10000),10000))
-dbWriteTable(con, 
-            name="passeggero", 
-            value=passeggero_df, 
-            append = T, 
-            row.names=F)
+# populate table Passeggero
+    v_nomi <- readLines("dati/nomi.txt")
+    v_cognomi <- readLines("dati/cognomi.txt")
+    passeggero_df <- data.frame(idpasseggero = sample(1:1000000, 10000, replace=F),
+                            nome=sample(v_nomi, 10000, replace = T),
+                            cognome=sample(v_cognomi, 10000, replace = T),
+                            numero_documento_identita=sample(genIdNumber(10000),10000))
+    dbWriteTable(con, 
+                name="passeggero", 
+                value=passeggero_df, 
+                append = T, 
+                row.names=F)
 
 
 
-prefV=function(v1){
-unlist(lapply(v1,function(x){
-	unlist(lapply(LETTERS,function(y){
-		paste0(x,y)
-	}))
-	}
-))}
 
-dbGetQuery(con, "SET search_path TO public;")
+
 # populate table Areoporto
-v_citta <- readLines("dati/aeroporto_citta.txt")
-v_nazioni <- readLines("dati/nazioni.txt")
-v_nomi_aeroporti <- readLines("dati/aeroporto_nome.txt")
+    v_citta <- readLines("dati/aeroporto_citta.txt")
+    v_nazioni <- readLines("dati/nazioni.txt")
+    v_nomi_aeroporti <- readLines("dati/aeroporto_nome.txt")
+
+    prefV=function(v1){
+    unlist(lapply(v1,function(x){
+        unlist(lapply(LETTERS,function(y){
+            paste0(x,y)
+        }))
+        }
+    ))}
+
+    v_code <- prefV(prefV(LETTERS))
+
+    areoporto_df <- data.frame(
+        codice_aeroporto = sample(v_code,100,replace=F),
+        citta = sample(v_citta,100),
+        nome = sample(v_nomi_aeroporti,100),
+        nazione = sample(v_nazioni,100)
+    )
+
+    dbWriteTable(con, 
+                name="aeroporto", 
+                value=areoporto_df, 
+                append = T, 
+                row.names=F)
+
+# populate table Compagnia Aerea
+    v_nome <- readLines("dati/compagnie_nomi.txt")
+    Compagnia_Aerea_df = data.frame(
+        idcompagnia = sample(v_code,80,replace=F),
+        nome = sample(v_nome,80,replace=F)
+    )
+
+    dbWriteTable(con, 
+                name="compagnia_aerea", 
+                value=Compagnia_Aerea_df, 
+                append = T, 
+                row.names=F)
 
 
-v_code <- prefV(prefV(LETTERS))
-
-areoporto_df <- data.frame(
-    codice_aeroporto = sample(v_code,100,replace=F),
-    citta = sample(v_citta,100),
-    nome = sample(v_nomi_aeroporti,100),
-    nazione = sample(v_nazioni,100)
-)
-
-a=dbWriteTable(con, 
-               name="aeroporto", 
-               value=areoporto_df, 
-               append = T, 
-               row.names=F)
 
 
 
-v_nome <- readLines("dati/compagnie_nomi.txt")
-# #populate table Compagnia_Aerea
-Compagnia_Aerea_df = data.frame(
-    idcompagnia = sample(v_code,100,replace=F),
-    nome = sample(v_nome,100,replace=T)
-)
+# populate table Volo
 
-dbWriteTable(con, 
-             name="compagnia_aerea", 
-             value=Compagnia_Aerea_df, 
-             append = T, 
-             row.names=F)
+    Tratte <- dbGetQuery(con, "SELECT a1.codice_aeroporto as C1, a2.codice_aeroporto as C2 
+                                FROM Aeroporto A1, Aeroporto A2 
+                                WHERE a1.codice_aeroporto != a2.codice_aeroporto")
+    selected<-sample(1:nrow(Tratte),100)
+    voli_partenze <- Tratte$c1[selected]
+    voli_arrivi <- Tratte$c2[selected]
+    id_Voli=1:100
+
+    genTime=function(){
+        paste0(c(sample(0:23,1),':',sample(0:23,1),':00'),collapse="")
+    }
+
+
+    Volo_df = data.frame(
+        idvolo=id_Voli,
+        orario_partenza=unlist(lapply(1:100,function(n){genTime()})),
+        orario_arrivo=unlist(lapply(1:100,function(n){genTime()})),
+        aeroporto_partenza = voli_partenze,
+        aeroporto_arrivo = voli_arrivi
+    )
+
+    dbWriteTable(con, 
+        name="volo", 
+        value=Volo_df, 
+        append = T, 
+        row.names=F)
+
+
+
+
+
 
 # # populate table Tipo_aeroplano
 # nome_tipo <- readLines("dati/aeroplani_nome.txt")
