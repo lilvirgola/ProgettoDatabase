@@ -141,6 +141,42 @@ dbGetQuery(con, "SET search_path TO public;")
         append = T, 
         row.names=F)
 
+# populate table Tipo aeroplano
+    nomi_tipo <- readLines("dati/aeroplani_nome.txt")
+    nomi_costruttori <- readLines("dati/aeroplani_costruttori.txt")
+    
+	
+    tipo_aeroplano_df <- data.frame(
+        nome_tipo= sample(nomi_tipo,70),
+        autonomia_volo = sample(100:10000,70)*100,
+        numero_massimo_posti = sample(50:1000,70),
+        nome_azienda_costruttrice = sample(nomi_costruttori, 70,replace=T)
+    )
+
+    dbWriteTable(con, 
+        name="tipo_aeroplano", 
+        value=tipo_aeroplano_df, 
+        append = T, 
+        row.names=F)
+
+
+# populate table Tipo aeroplano
+    aeroplani<-tipo_aeroplano_df[sample(1:70,200,replace=T),];
+    codici_aeroplani <- unlist(lapply(1:220,
+	   function(x){
+        paste0(sample(c(0:9,LETTERS),10,replace=T),collapse="")
+    }))
+    aeroplano_df<- data.frame(
+        codice_aeroplano=sample(codici_aeroplani,200),
+        posti_effettivi=round(aeroplani$numero_massimo_posti*sample(50:100,200,replace=T)/100),
+        tipo_aereo=aeroplani$nome_tipo
+    );
+
+    dbWriteTable(con, 
+        name="aeroplano", 
+        value=aeroplano_df, 
+        append = T, 
+        row.names=F)
 
 
 # nome_tipo <- readLines("dati/aeroplani_nome.txt")

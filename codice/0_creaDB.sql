@@ -26,10 +26,10 @@ CREATE TABLE Classe(
 );
 
 CREATE TABLE Tipo_aeroplano(
-    nome_tipo CHAR(20) PRIMARY KEY,
+    nome_tipo CHAR(40) PRIMARY KEY,
     autonomia_volo INTEGER,
     numero_massimo_posti INTEGER NOT NULL,
-    nome_azienda_costruttrice VARCHAR(20) NOT NULL
+    nome_azienda_costruttrice VARCHAR(25) NOT NULL
 );
 
     
@@ -37,7 +37,7 @@ CREATE TABLE Tipo_aeroplano(
 CREATE TABLE Aeroplano(
     codice_aeroplano VARCHAR(10) PRIMARY KEY,
     posti_effettivi INTEGER NOT NULL,
-    tipo_aereo CHAR(20)  REFERENCES Tipo_aeroplano(nome_tipo)
+    tipo_aereo CHAR(40)  REFERENCES Tipo_aeroplano(nome_tipo)
 );
 
 
