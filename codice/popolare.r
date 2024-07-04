@@ -98,7 +98,7 @@ dbGetQuery(con, "SET search_path TO public;")
     selected<-sample(1:nrow(Tratte),100)
     voli_partenze <- Tratte$c1[selected]
     voli_arrivi <- Tratte$c2[selected]
-    id_Voli=1:100
+    id_voli=1:100
 
     genTime=function(){
         paste0(c(sample(0:23,1),':',sample(0:23,1),':00'),collapse="")
@@ -106,7 +106,7 @@ dbGetQuery(con, "SET search_path TO public;")
 
 
     Volo_df = data.frame(
-        idvolo=id_Voli,
+        idvolo=id_voli,
         orario_partenza=unlist(lapply(1:100,function(n){genTime()})),
         orario_arrivo=unlist(lapply(1:100,function(n){genTime()})),
         aeroporto_partenza = voli_partenze,
@@ -120,11 +120,29 @@ dbGetQuery(con, "SET search_path TO public;")
         row.names=F)
 
 
+# populate table Classe
+    classi <- readLines("dati/classi.txt")
+    voli_classi <- c(id_voli,sample(id_voli,120,replace=T))
+    volo_classe_df <- data.frame(
+        volo = voli_classi,
+        classe = sample(classi,220,replace=T)
+    )
+
+    unique_classe_df<-volo_classe_df[!duplicated(volo_classe_df),]
+    classe_df <- data.frame(
+        volo = unique_classe_df$volo,
+        classe = unique_classe_df$classe,
+        prezzo=sample(1:10000,length(unique_classe_df$volo))/100
+    )
+
+    dbWriteTable(con, 
+        name="classe", 
+        value=classe_df, 
+        append = T, 
+        row.names=F)
 
 
 
-
-# # populate table Tipo_aeroplano
 # nome_tipo <- readLines("dati/aeroplani_nome.txt")
 # autonomia_volo <- sample(1000:10000, 100, replace=T)
 # numero_massimo_posti <- sample(100:500, 100, replace=T)

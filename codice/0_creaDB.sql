@@ -21,7 +21,7 @@ CREATE TABLE Volo(
 CREATE TABLE Classe(
     volo INTEGER REFERENCES Volo(idVolo),
     classe VARCHAR(10) NOT NULL,
-    prezzo DECIMAL(2) NOT NULL,
+    prezzo DECIMAL(4,2) NOT NULL,
     PRIMARY KEY (volo,prezzo)
 );
 
