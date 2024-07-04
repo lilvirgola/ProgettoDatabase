@@ -160,7 +160,7 @@ dbGetQuery(con, "SET search_path TO public;")
         row.names=F)
 
 
-# populate table Tipo aeroplano
+# populate table aeroplano
     aeroplani<-tipo_aeroplano_df[sample(1:70,200,replace=T),];
     codici_aeroplani <- unlist(lapply(1:220,
 	   function(x){
