@@ -45,16 +45,23 @@ CREATE TABLE Tratta(
     idTratta INTEGER NOT NULL PRIMARY KEY,
     orario_partenza TIME,
     orario_arrivo TIME,
-    aeroporto_decollo CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
+    aeroporto_partenza CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
     aeroporto_arrivo CHAR(3) REFERENCES Aeroporto(codice_aeroporto)
 );
-    
+
 CREATE TABLE Istanza_Tratta(
     idTratta INTEGER,
     data_volo DATE,
     posti_rimanenti INTEGER,
     aereo_usato VARCHAR(10) REFERENCES Aeroplano(codice_aeroplano),
     PRIMARY KEY (idTratta,data_volo)
+);
+
+CREATE TABLE Compone(
+    progressivoTratta INTEGER NOT NULL,
+    idTratta INTEGER REFERENCES Tratta(idTratta),
+    idVolo INTEGER REFERENCES Volo(idVolo),
+    PRIMARY KEY (idTratta, idVolo)
 );
 
 CREATE TABLE Passeggero(
@@ -85,12 +92,7 @@ CREATE TABLE Riguarda(
     PRIMARY KEY (idTratta, idPrenotazione)
 );
 
-CREATE TABLE Compone(
-    progressivoTratta INTEGER NOT NULL,
-    idTratta INTEGER REFERENCES Tratta(idTratta),
-    idVolo INTEGER REFERENCES Volo(idVolo),
-    PRIMARY KEY (idTratta, idVolo)
-);
+
     
 CREATE TABLE Accetta(
     nome_tipo CHAR(20) REFERENCES Tipo_Aeroplano(nome_tipo),
