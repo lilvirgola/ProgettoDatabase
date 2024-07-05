@@ -178,7 +178,29 @@ dbGetQuery(con, "SET search_path TO public;")
         append = T, 
         row.names=F)
 
+# populate table Passeggero
+    nomi_passeggeri <- readLines("dati/nomi.txt")
+    cognomi_passeggeri <- readLines("dati/cognomi.txt")
+    codici_documenti <- unlist(lapply(1:1550,
+	   function(x){
+        paste0(sample(c(0:9,LETTERS),15,replace=T),collapse="")
+    }))
+   
+    passeggero_df <- data.frame(
+        id_passeggero=1:1500,
+        nome = sample(nomi_passeggeri,1500),
+        cognome= sample(cognomi_passeggeri,1500,replace=T),
+        numero_documento_identita=sample(codici_documenti, 1500)
+    )
 
+    dbWriteTable(con, 
+        name="passeggero", 
+        value=passeggero_df, 
+        append = T, 
+        row.names=F)
+
+    
+    
 # nome_tipo <- readLines("dati/aeroplani_nome.txt")
 # autonomia_volo <- sample(1000:10000, 100, replace=T)
 # numero_massimo_posti <- sample(100:500, 100, replace=T)

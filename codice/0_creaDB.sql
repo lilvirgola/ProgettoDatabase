@@ -58,7 +58,7 @@ CREATE TABLE Istanza_Tratta(
 );
 
 CREATE TABLE Passeggero(
-    idPasseggero INTEGER PRIMARY KEY,
+    id_passeggero INTEGER PRIMARY KEY,
     nome VARCHAR(20),
     cognome VARCHAR(20),
     numero_documento_identita VARCHAR(15)
@@ -66,15 +66,15 @@ CREATE TABLE Passeggero(
 
 CREATE TABLE Prenotazione(
     idPrenotazione INTEGER PRIMARY KEY,
-    passeggero INTEGER REFERENCES Passeggero(idPasseggero),
+    passeggero INTEGER REFERENCES Passeggero(id_passeggero),
     cancellata BOOL
 );
 
     
 CREATE TABLE Numero_di_telefono(
-    idPasseggero INTEGER REFERENCES Passeggero(idPasseggero),
+    id_passeggero INTEGER REFERENCES Passeggero(id_passeggero),
     numero VARCHAR(15),
-    PRIMARY KEY(idPasseggero, numero)
+    PRIMARY KEY(id_passeggero, numero)
 );
 
 CREATE TABLE Riguarda(
