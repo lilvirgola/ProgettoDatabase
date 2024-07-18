@@ -84,7 +84,7 @@ dbGetQuery(con, "SET search_path TO public;")
 # populate table Compagnia Aerea
     v_nome <- readLines("dati/compagnie_nomi.txt")
     Compagnia_Aerea_df = data.frame(
-        idcompagnia = sample(v_code,80,replace=F),
+        id_compagnia = sample(v_code,80,replace=F),
         nome = sample(v_nome,80,replace=F)
     )
 
@@ -111,13 +111,13 @@ dbGetQuery(con, "SET search_path TO public;")
 
     genTime <- function(){
         hs <- sample(0:22,1)
-        ms <- sample(0:59,1)
-        c(partenza=gettextf("%02d:%02d:00",hs,ms),arrivo=gettextf("%02d:%02d:00",sample(hs:23,1),sample(ms:59,1)))
+        ms <- sample(0:57,1)
+        c(partenza=gettextf("%02d:%02d:00",hs,ms),arrivo=gettextf("%02d:%02d:00",sample(hs:23,1),sample((ms+1):59,1)))
     }
     orari <- sapply(1:1000,function(n){genTime()})
 
     tratte_df <- data.frame(
-        idtratta=id_tratte,
+        id_tratta=id_tratte,
         orario_partenza=orari[1,1:1000],
         orario_arrivo=orari[2,1:1000],
         aeroporto_partenza = voli_partenze,
@@ -135,7 +135,7 @@ dbGetQuery(con, "SET search_path TO public;")
    
     concL <- function(l, e){
         data.frame(
-            idvolo=c(l$idvolo,e$idvolo),
+            id_volo=c(l$id_volo,e$id_volo),
             orario_partenza=c(l$orario_partenza,e$orario_partenza),
             orario_arrivo=c(l$orario_arrivo,e$orario_arrivo),
             aeroporto_partenza = c(l$aeroporto_partenza,e$aeroporto_partenza),
@@ -148,14 +148,14 @@ dbGetQuery(con, "SET search_path TO public;")
 
 
     compone_df <- data.frame(
-        progressivotratta=list(),
-        idtratta=list(),
-        idvolo=list()
+        progressivo_tratta=list(),
+        id_tratta=list(),
+        id_volo=list()
         )
 
 
     voli_df <- data.frame(
-        idvolo=list(),
+        id_volo=list(),
         orario_partenza=list(),
         orario_arrivo=list(),
         aeroporto_partenza = list(),
@@ -170,12 +170,12 @@ dbGetQuery(con, "SET search_path TO public;")
         tc <- t0
 
         compone_df<- data.frame(
-            progressivotratta=c(compone_df$progressivotratta,1),
-            idtratta=c(compone_df$idtratta,t0$idtratta),
-            idvolo=c(compone_df$idvolo,id_volo)
+            progressivo_tratta=c(compone_df$progressivo_tratta,1),
+            id_tratta=c(compone_df$id_tratta,t0$id_tratta),
+            id_volo=c(compone_df$id_volo,id_volo)
         )
 
-        for(progressivotratta in 2:n_tratte){
+        for(progressivo_tratta in 2:n_tratte){
             poss <- subset(tratte_df,(aeroporto_partenza==tc$aeroporto_arrivo) & (orario_partenza>tc$orario_arrivo))
             
             if(length(poss[,1])==0){
@@ -187,15 +187,15 @@ dbGetQuery(con, "SET search_path TO public;")
                 tc<- sampleDF(poss)
             }
             compone_df<- data.frame(
-                progressivotratta=c(compone_df$progressivotratta,progressivotratta),
-                idtratta=c(compone_df$idtratta,tc$idtratta),
-                idvolo=c(compone_df$idvolo,id_volo)
+                progressivo_tratta=c(compone_df$progressivo_tratta,progressivo_tratta),
+                id_tratta=c(compone_df$id_tratta,tc$id_tratta),
+                id_volo=c(compone_df$id_volo,id_volo)
             )
         }
     
         voli_df <- concL(voli_df, 
             data.frame(
-                idvolo=id_volo,
+                id_volo=id_volo,
                 orario_partenza= t0$orario_partenza,
                 orario_arrivo= tc$orario_arrivo,
                 aeroporto_partenza = t0$aeroporto_partenza,
@@ -231,10 +231,10 @@ dbGetQuery(con, "SET search_path TO public;")
 
 # populate table Classe
     classi <- readLines("dati/classi.txt")
-    voli_classi <- c(id_voli,sample(id_voli,120,replace=T))
+    voli_classi <- c(voli_df$id_volo,sample(voli_df$id_volo,200,replace=T))
     volo_classe_df <- data.frame(
         volo = voli_classi,
-        classe = sample(classi,220,replace=T)
+        classe = sample(classi,length(voli_classi),replace=T)
     )
 
     unique_classe_df<-volo_classe_df[!duplicated(volo_classe_df),]
