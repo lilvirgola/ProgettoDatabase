@@ -81,7 +81,9 @@ CREATE TABLE Passeggero(
 CREATE TABLE Prenotazione(
     id_prenotazione INTEGER PRIMARY KEY,
     passeggero INTEGER REFERENCES Passeggero(id_passeggero),
-    cancellata BOOL
+    cancellata BOOL,
+    riguarda_volo INTEGER REFERENCES Volo(id_volo),
+    sceglie_classe VARCHAR(10) REFERENCES Classe(nome_classe) 
 );
 
     
@@ -91,7 +93,7 @@ CREATE TABLE Numero_di_telefono(
     PRIMARY KEY(id_passeggero, numero)
 );
 
-CREATE TABLE Riguarda(
+CREATE TABLE Comprende(
     posto CHAR(4) NOT NULL,
     id_tratta INTEGER REFERENCES Tratta(id_tratta),
     id_prenotazione INTEGER REFERENCES Prenotazione(id_prenotazione),
@@ -134,12 +136,11 @@ create or replace function controllo_successione()
             JOIN Tratta t1 on c1.id_tratta=t1.id_tratta
             JOIN Tratta t2 on c2.id_tratta=t2.id_tratta
             where c1.id_volo=c2.id_volo 
-            and c1.progressivo_tratta = c2.progressivo_tratta+1
+            and c1.progressivo_tratta +1 = c2.progressivo_tratta
             and c1.id_volo = new.id_volo
-
         LOOP
             IF collegamento.aeroporto_arrivo != collegamento.aeroporto_partenza THEN
-                RAISE NOTICE 'Aeroporti non uguali nel cambio';
+                RAISE NOTICE 'Aeroporti non uguali nel cambio %s ', new;
                 RETURN NULL; 
             END IF;
 
@@ -219,6 +220,6 @@ $$ ;
 
 
 create trigger controllo_numero_posti_trigger
-before insert or update on Riguarda
+before insert or update on Comprende
 for each row
 execute procedure controllo_numero_posti();

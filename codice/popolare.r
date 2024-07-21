@@ -28,30 +28,6 @@ genIdNumber= function(n){
 dbGetQuery(con, "SET search_path TO public;")
 
 
-# populate table Passeggero
-    v_nomi <- readLines("dati/nomi.txt")
-    v_cognomi <- readLines("dati/cognomi.txt")
-    codici_documenti <- unlist(lapply(1:1550,
-	   function(x){
-        paste0(sample(c(0:9,LETTERS),15,replace=T),collapse="")
-    }))
-   
-    passeggero_df <- data.frame(
-        id_passeggero=1:1500,
-        nome = sample(v_nomi,1500),
-        cognome= sample(v_nomi,1500,replace=T),
-        numero_documento_identita=sample(codici_documenti, 1500)
-    )
-
-    dbWriteTable(con, 
-        name="passeggero", 
-        value=passeggero_df, 
-        append = T, 
-        row.names=F)
-
-
-
-
 
 # populate table Areoporto
     v_citta <- readLines("dati/aeroporto_citta.txt")
@@ -215,20 +191,6 @@ dbGetQuery(con, "SET search_path TO public;")
         append = T, 
         row.names=F)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # populate table Classe
     classi <- readLines("dati/classi.txt")
     voli_classi <- c(voli_df$id_volo,sample(voli_df$id_volo,200,replace=T))
@@ -237,16 +199,31 @@ dbGetQuery(con, "SET search_path TO public;")
         classe = sample(classi,length(voli_classi),replace=T)
     )
 
-    unique_classe_df<-volo_classe_df[!duplicated(volo_classe_df),]
     classe_df <- data.frame(
-        volo = unique_classe_df$volo,
-        classe = unique_classe_df$classe,
-        prezzo=sample(1:10000,length(unique_classe_df$volo))/100
+        nome_classe = classi
     )
 
     dbWriteTable(con, 
         name="classe", 
         value=classe_df, 
+        append = T, 
+        row.names=F)
+
+
+    
+
+    unique_classe_df<-volo_classe_df[!duplicated(volo_classe_df),]
+    dispone_classe_df <- data.frame(
+        volo = unique_classe_df$volo,
+        classe = unique_classe_df$classe,
+        prezzo=sample(1:10000,length(unique_classe_df$volo))/100
+    )
+
+
+
+    dbWriteTable(con, 
+        name="dispone_classe", 
+        value=dispone_classe_df, 
         append = T, 
         row.names=F)
 
@@ -275,19 +252,6 @@ dbGetQuery(con, "SET search_path TO public;")
     # select count(*) from tratte t1, tratte t2, tratte t3 where t1.aeroporto_arrivo = t2.aeroporto_partenza and t2.aeroporto_arrivo = t3.aeroporto_partenza and t1.orario_arrivo < t2.orario_partenza and t2.orario_arrivo<t3.orario_partenza
 
 
-
-
-
-gettextf(paste0("%02d"),0:99)
-
-
-
-
-
-
-
-
-
 # populate table aeroplano
     aeroplani<-tipo_aeroplano_df[sample(1:70,200,replace=T),];
     codici_aeroplani <- unlist(lapply(1:220,
@@ -308,7 +272,36 @@ gettextf(paste0("%02d"),0:99)
 
 
 
+
+
+
+# populate table Passeggero
+    v_nomi <- readLines("dati/nomi.txt")
+    v_cognomi <- readLines("dati/cognomi.txt")
+    codici_documenti <- unlist(lapply(1:1550,
+	   function(x){
+        paste0(sample(c(0:9,LETTERS),15,replace=T),collapse="")
+    }))
+    id_passeggeri <- 1:1500
+   
+    passeggero_df <- data.frame(
+        id_passeggero=id_passeggeri,
+        nome = sample(v_nomi,1500),
+        cognome= sample(v_nomi,1500,replace=T),
+        numero_documento_identita=sample(codici_documenti, 1500)
+    )
+
+    dbWriteTable(con, 
+        name="passeggero", 
+        value=passeggero_df, 
+        append = T, 
+        row.names=F)
+
+
+
+ # populate table numero_telefono
     
+
 # nome_tipo <- readLines("dati/aeroplani_nome.txt")
 # autonomia_volo <- sample(1000:10000, 100, replace=T)
 # numero_massimo_posti <- sample(100:500, 100, replace=T)
