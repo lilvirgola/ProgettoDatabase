@@ -44,7 +44,7 @@ dbGetQuery(con, "SET search_path TO public;")
 
     v_code <- prefV(prefV(LETTERS))
 
-    areoporto_df <- data.frame(
+    aeroporto_df <- data.frame(
         codice_aeroporto = sample(v_code,100,replace=F),
         citta = sample(v_citta,100),
         nome = sample(v_nomi_aeroporti,100),
@@ -53,13 +53,13 @@ dbGetQuery(con, "SET search_path TO public;")
 
     dbWriteTable(con, 
                 name="aeroporto", 
-                value=areoporto_df, 
+                value=aeroporto_df, 
                 append = T, 
                 row.names=F)
 
 # populate table Compagnia Aerea
     v_nome <- readLines("dati/compagnie_nomi.txt")
-    Compagnia_Aerea_df = data.frame(
+    Compagnia_Aerea_df <- data.frame(
         id_compagnia = sample(v_code,80,replace=F),
         nome = sample(v_nome,80,replace=F)
     )
@@ -115,7 +115,8 @@ dbGetQuery(con, "SET search_path TO public;")
             orario_partenza=c(l$orario_partenza,e$orario_partenza),
             orario_arrivo=c(l$orario_arrivo,e$orario_arrivo),
             aeroporto_partenza = c(l$aeroporto_partenza,e$aeroporto_partenza),
-            aeroporto_arrivo = c(l$aeroporto_arrivo,e$aeroporto_arrivo)
+            aeroporto_arrivo = c(l$aeroporto_arrivo,e$aeroporto_arrivo),
+            id_compagnia= c(l$id_compagnia, e$id_compagnia)
     )}
 
     sampleDF <- function(df){
@@ -135,7 +136,8 @@ dbGetQuery(con, "SET search_path TO public;")
         orario_partenza=list(),
         orario_arrivo=list(),
         aeroporto_partenza = list(),
-        aeroporto_arrivo = list()
+        aeroporto_arrivo = list(),
+        id_compagnia=list()
     )
 
 
@@ -174,6 +176,7 @@ dbGetQuery(con, "SET search_path TO public;")
                 id_volo=id_volo,
                 orario_partenza= t0$orario_partenza,
                 orario_arrivo= tc$orario_arrivo,
+                id_compagnia=sample(v_code,1,replace=F)
                 aeroporto_partenza = t0$aeroporto_partenza,
                 aeroporto_arrivo = tc$aeroporto_arrivo
             ))        
@@ -208,15 +211,13 @@ dbGetQuery(con, "SET search_path TO public;")
         value=classe_df, 
         append = T, 
         row.names=F)
-
-
     
 
     unique_classe_df<-volo_classe_df[!duplicated(volo_classe_df),]
     dispone_classe_df <- data.frame(
         volo = unique_classe_df$volo,
         classe = unique_classe_df$classe,
-        prezzo=sample(1:10000,length(unique_classe_df$volo))/100
+        prezzo=sample(1:10000,nrow(unique_classe_df))/100
     )
 
 
@@ -300,12 +301,142 @@ dbGetQuery(con, "SET search_path TO public;")
 
 
  # populate table numero_telefono
+    id_passeggeri_numeri <- c(id_passeggeri,sample(id_passeggeri,400,replace=T))
+    numeri <- sample(10^10, length(id_passeggeri_numeri))
+    numeri_telefono_df <- data.frame(
+        id_passeggero = id_passeggeri_numeri,
+        numero = numeri
+    )
+
+    dbWriteTable(con, 
+        name="numero_di_telefono", 
+        value=numeri_telefono_df, 
+        append = T, 
+        row.names=F)
+
+# populate table istanza_tratta
+    aeroplani_disponibili <- dbGetQuery(con,"SELECT codice_aeroplano,posti_effettivi 
+                                            FROM aeroplano")
+    aeroplani_usati <- aeroplani_disponibili[sample(nrow(aeroplani_disponibili),8000,replace=T),]
+
+    tratte_date_poss <- (365*4)*1000
+    id_instanziati <- sample(tratte_date_poss,8000)
+    id_tratte_instanziati <- (id_instanziati %% 1000)+1
+    gionri_tratte_instanziate <- ceiling(id_instanziati /1000)
+
+    istanza_tratta_df <- data.frame(
+        id_tratta = id_tratte_instanziati,
+        data_volo = format(ISOdate(2020,01,01)+gionri_tratte_instanziate * 24*3600,"%D"),
+        posti_rimanenti = aeroplani_usati$posti_effettivi ,
+        aereo_usato = aeroplani_usati$codice_aeroplano
+    )
+
+    dbWriteTable(con, 
+        name="istanza_tratta",
+        value=istanza_tratta_df, 
+        append = T, 
+        row.names=F)
+
+
+# populate prenotazione
+    id_prenotazioni  <- 1:500
+    prenotazione_volo <- dbGetQuery(con,"SELECT id_volo,classe 
+                                        FROM volo V
+                                        JOIN dispone_classe DC ON DC.volo=V.id_volo
+                                        WHERE NOT EXISTS(
+                                            SELECT *  -- trovo tratte non instanziate
+                                            FROM Compone C
+                                            WHERE C.id_volo=V.id_volo
+                                                AND NOT EXISTS (
+                                                    SELECT *
+                                                    FROM Istanza_Tratta IT
+                                                    WHERE IT.id_tratta=C.id_tratta
+                                                )
+                                        )")
+
+    voli_prenotati <- prenotazione_volo[sample(nrow(prenotazione_volo), 500,replace=T),]
+
+    passeggero_prenotazione <- sample (id_passeggeri,500, replace=T)
+
+    prenotazione_cancellata <- sample(10,500,replace=T)==1
+    prenotazione_df <- data.frame(
+        id_prenotazione=id_prenotazioni,
+        passeggero = passeggero_prenotazione,
+        cancellata = prenotazione_cancellata,
+        riguarda_volo = voli_prenotati$id_volo,
+        sceglie_classe = voli_prenotati$classe
+    )
+
+    dbWriteTable(con, 
+        name="prenotazione",
+        value=prenotazione_df, 
+        append = T, 
+    row.names=F)
+
+
+# populate Comprende
+
+    voli_prenotati <- dbGetQuery(con,"SELECT MAX(progressivo_tratta) AS n_tratte,id_prenotazione, id_volo
+                                    FROM Prenotazione Pr
+                                    JOIN Compone C on Pr.riguarda_volo=C.id_volo
+                                    GROUP BY id_prenotazione,id_volo")
+    comprende_df <- data.frame(
+        id_tratta=list(),
+        data_volo=list(),
+        id_prenotazione=list(),
+        posto =list()
+    )
+
+    for (i in 1:nrow(voli_prenotati)) {
+        volo <- voli_prenotati[i,]
+        for(prog in 1:volo$n_tratte){
+            possibili_tratte <- dbGetQuery(con,
+                            gettextf("
+                            SELECT *
+                            FROM Compone C 
+                            JOIN Istanza_Tratta IT on IT.id_tratta=C.id_tratta
+                            WHERE C.id_volo=%d
+                            AND C.progressivo_tratta =%d",volo$id_volo,prog))
+            tratta_usata <- possibili_tratte[sample(nrow(possibili_tratte),1),]
+            comprende_df  <- rbind(comprende_df,data.frame(
+                id_tratta =tratta_usata$id_tratta,
+                data_volo = tratta_usata$data_volo,
+                id_prenotazione =volo$id_volo,
+                posto = sample(1:9999,1)
+            ))
+    # se due viaggiano nello stesso posto è possibile, si chiama overbooking
+            
+           
+        }
+    }
     
+     dbWriteTable(con, 
+                name="comprende",
+                value=comprende_df, 
+                append = T, 
+            )
+        
+
+# populate table Accetta
+    combinazioni_scelte <-sample(nrow(tipo_aeroplano_df)*nrow(aeroporto_df),4000)
+    accetta_df <- data.frame(
+        nome_tipo = aeroplano_df$codice_aeroplano[(combinazioni_scelte-1) %% nrow(tipo_aeroplano_df)+1],
+        codice_aeroporto = aeroporto_df$codice_aeroporto[ceiling(combinazioni_scelte /nrow(tipo_aeroplano_df))]
+    )
+    
+    
+     dbWriteTable(con, 
+        name="accetta",
+        value=accetta_df, 
+        append = T, 
+    )
+
+
 
 # nome_tipo <- readLines("dati/aeroplani_nome.txt")
 # autonomia_volo <- sample(1000:10000, 100, replace=T)
 # numero_massimo_posti <- sample(100:500, 100, replace=T)
-# nome_azienda_costruttrice <- readLines("dati/aeroplani_costruttori.txt")
+# nome_azienda_costruttrice <- readLines("dati/aersegretario@esnnaseudine.itoplani_costruttori.txt")
 # dbWriteTable(con, 
 #              name="Tipo_aeroplano", 
 #              value=data.frame(nome_tipo=nome_tipo, autonomia_volo=autonomia_volo), 

@@ -14,6 +14,7 @@ CREATE TABLE Volo(
     id_volo INTEGER PRIMARY KEY,
     orario_partenza TIME,
     orario_arrivo TIME,
+    id_compagnia CHAR(3) REFERENCES Compagnia_Aerea(id_compagnia)
     aeroporto_partenza CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
     aeroporto_arrivo CHAR(3) REFERENCES Aeroporto(codice_aeroporto)
 );
@@ -57,7 +58,7 @@ CREATE TABLE Tratta(
 );
 
 CREATE TABLE Istanza_Tratta(
-    id_tratta INTEGER,
+    id_tratta INTEGER REFERENCES Tratta(id_tratta),
     data_volo DATE,
     posti_rimanenti INTEGER,
     aereo_usato VARCHAR(10) REFERENCES Aeroplano(codice_aeroplano),
@@ -78,7 +79,7 @@ CREATE TABLE Passeggero(
     numero_documento_identita VARCHAR(15)
 );
 
-CREATE TABLE Prenotazione(
+CREATE TABLE Prenotazione(   
     id_prenotazione INTEGER PRIMARY KEY,
     passeggero INTEGER REFERENCES Passeggero(id_passeggero),
     cancellata BOOL,
@@ -93,29 +94,30 @@ CREATE TABLE Numero_di_telefono(
     PRIMARY KEY(id_passeggero, numero)
 );
 
-CREATE TABLE Comprende(
+CREATE TABLE Comprende( 
     posto CHAR(4) NOT NULL,
-    id_tratta INTEGER REFERENCES Tratta(id_tratta),
-    id_prenotazione INTEGER REFERENCES Prenotazione(id_prenotazione),
+    id_tratta INTEGER ,
     data_volo DATE NOT NULL,
-    PRIMARY KEY (id_tratta, id_prenotazione)
+    id_prenotazione INTEGER REFERENCES Prenotazione(id_prenotazione),
+    PRIMARY KEY (id_tratta, id_prenotazione, data_volo),
+    FOREIGN KEY (id_tratta, data_volo) REFERENCES Istanza_Tratta(id_tratta, data_volo)
 );
 
 
     
-CREATE TABLE Accetta(
+CREATE TABLE Accetta( 
     nome_tipo CHAR(20) REFERENCES Tipo_Aeroplano(nome_tipo),
     codice_aeroporto CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
     PRIMARY KEY (nome_tipo, codice_aeroporto)
 );
 
-CREATE TABLE Possiede(
+CREATE TABLE Possiede(  -- da fare
     codice_aeroplano VARCHAR(10) REFERENCES Aeroplano(codice_aeroplano),
     id_compagnia CHAR(5) REFERENCES Compagnia_Aerea(id_compagnia),
     PRIMARY KEY (codice_aeroplano, id_compagnia)
 );
     
-CREATE TABLE Giorni_della_settimana(
+CREATE TABLE Giorni_della_settimana(  -- da fare
     giorno INTEGER,
     id_volo INTEGER REFERENCES Volo(id_volo),
     PRIMARY KEY (giorno, id_volo),
