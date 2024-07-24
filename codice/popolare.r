@@ -432,6 +432,19 @@ dbGetQuery(con, "SET search_path TO public;")
     )
 
 
+# populate table possiede
+    combinazioni_scelte <-sample(nrow(aeroplano_df)*nrow(Compagnia_Aerea_df),4000)
+    possiede_df <- data.frame(
+        codice_aeroplano = aeroplano_df$codice_aeroplano[(combinazioni_scelte-1) %% nrow(aeroplano_df)+1],
+        id_compagnia = Compagnia_Aerea_df$id_compagnia[ceiling(combinazioni_scelte /nrow(aeroplano_df))]
+    )
+    
+    
+    dbWriteTable(con, 
+        name="possiede",
+        value=possiede_df, 
+        append = T, 
+    )
 
 # nome_tipo <- readLines("dati/aeroplani_nome.txt")
 # autonomia_volo <- sample(1000:10000, 100, replace=T)
