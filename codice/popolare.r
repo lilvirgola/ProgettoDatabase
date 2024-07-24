@@ -176,7 +176,7 @@ dbGetQuery(con, "SET search_path TO public;")
                 id_volo=id_volo,
                 orario_partenza= t0$orario_partenza,
                 orario_arrivo= tc$orario_arrivo,
-                id_compagnia=sample(v_code,1,replace=F)
+                id_compagnia=sample(v_code,1,replace=F),
                 aeroporto_partenza = t0$aeroporto_partenza,
                 aeroporto_arrivo = tc$aeroporto_arrivo
             ))        
@@ -414,8 +414,8 @@ dbGetQuery(con, "SET search_path TO public;")
                 name="comprende",
                 value=comprende_df, 
                 append = T, 
-            )
-        
+        row.names=F)
+
 
 # populate table Accetta
     combinazioni_scelte <-sample(nrow(tipo_aeroplano_df)*nrow(aeroporto_df),4000)
@@ -429,7 +429,8 @@ dbGetQuery(con, "SET search_path TO public;")
         name="accetta",
         value=accetta_df, 
         append = T, 
-    )
+            row.names=F)
+
 
 
 # populate table possiede
@@ -444,7 +445,27 @@ dbGetQuery(con, "SET search_path TO public;")
         name="possiede",
         value=possiede_df, 
         append = T, 
-    )
+        row.names=F)
+
+
+#populate table Giorni_della_settimana
+    giorni_della_settimana_df <- data.frame(giorno=list(),id_volo=list())
+    id_voli <- dbGetQuery(con,"SELECT id_volo FROM volo")$id_volo
+    for(id_volo in id_voli){
+        n_giorni <- sample(7,1)
+        giorni_della_settimana_df <- rbind(giorni_della_settimana_df, data.frame(
+            id_volo = rep(id_volo,n_giorni),
+            giorno = sample(1:7,n_giorni)
+        ))
+    }
+
+    dbWriteTable(con, 
+        name="giorni_della_settimana",
+        value=giorni_della_settimana_df, 
+        append = T,
+        row.names=F)
+
+
 
 # nome_tipo <- readLines("dati/aeroplani_nome.txt")
 # autonomia_volo <- sample(1000:10000, 100, replace=T)

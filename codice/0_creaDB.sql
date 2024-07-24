@@ -111,13 +111,13 @@ CREATE TABLE Accetta(
     PRIMARY KEY (nome_tipo, codice_aeroporto)
 );
 
-CREATE TABLE Possiede(  -- da fare
+CREATE TABLE Possiede(  
     codice_aeroplano VARCHAR(10) REFERENCES Aeroplano(codice_aeroplano),
     id_compagnia CHAR(5) REFERENCES Compagnia_Aerea(id_compagnia),
     PRIMARY KEY (codice_aeroplano, id_compagnia)
 );
     
-CREATE TABLE Giorni_della_settimana(  -- da fare
+CREATE TABLE Giorni_della_settimana(  
     giorno INTEGER,
     id_volo INTEGER REFERENCES Volo(id_volo),
     PRIMARY KEY (giorno, id_volo),
