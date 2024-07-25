@@ -14,9 +14,10 @@ CREATE TABLE Volo(
     id_volo INTEGER PRIMARY KEY,
     orario_partenza TIME,
     orario_arrivo TIME,
-    id_compagnia CHAR(3) REFERENCES Compagnia_Aerea(id_compagnia),
-    aeroporto_partenza CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
-    aeroporto_arrivo CHAR(3) REFERENCES Aeroporto(codice_aeroporto)
+    id_compagnia CHAR(3) REFERENCES Compagnia_Aerea(id_compagnia) ON DELETE CASCADE,
+    aeroporto_partenza CHAR(3) REFERENCES Aeroporto(codice_aeroporto) ON DELETE CASCADE,
+    aeroporto_arrivo CHAR(3) REFERENCES Aeroporto(codice_aeroporto) ON DELETE CASCADE,
+    CONSTRAINT orari_validi CHECK (orario_partenza < orario_arrivo )
 );
 
 
@@ -25,8 +26,8 @@ Create table Classe(
 );
 
 CREATE TABLE Dispone_Classe(
-    volo INTEGER REFERENCES Volo(id_volo),
-    classe VARCHAR(10) REFERENCES Classe(nome_classe),
+    volo INTEGER REFERENCES Volo(id_volo) ON DELETE CASCADE,
+    classe VARCHAR(10) REFERENCES Classe(nome_classe) ON DELETE CASCADE,
     prezzo DECIMAL(5,2) NOT NULL,
     PRIMARY KEY (volo,classe)
 );
@@ -44,7 +45,7 @@ CREATE TABLE Tipo_aeroplano(
 CREATE TABLE Aeroplano(
     codice_aeroplano VARCHAR(10) PRIMARY KEY,
     posti_effettivi INTEGER NOT NULL,
-    tipo_aereo CHAR(40)  REFERENCES Tipo_aeroplano(nome_tipo)
+    tipo_aereo CHAR(40)  REFERENCES Tipo_aeroplano(nome_tipo) ON DELETE CASCADE
 );
 
 
@@ -52,8 +53,8 @@ CREATE TABLE Tratta(
     id_tratta INTEGER NOT NULL PRIMARY KEY,
     orario_partenza TIME,
     orario_arrivo TIME,
-    aeroporto_partenza CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
-    aeroporto_arrivo CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
+    aeroporto_partenza CHAR(3) REFERENCES Aeroporto(codice_aeroporto) ON DELETE CASCADE,
+    aeroporto_arrivo CHAR(3) REFERENCES Aeroporto(codice_aeroporto) ON DELETE CASCADE,
     CONSTRAINT orari_validi CHECK (orario_partenza < orario_arrivo )
 );
 
@@ -61,14 +62,14 @@ CREATE TABLE Istanza_Tratta(
     id_tratta INTEGER REFERENCES Tratta(id_tratta),
     data_volo DATE,
     posti_rimanenti INTEGER,
-    aereo_usato VARCHAR(10) REFERENCES Aeroplano(codice_aeroplano),
+    aereo_usato VARCHAR(10) REFERENCES Aeroplano(codice_aeroplano) ON DELETE CASCADE,
     PRIMARY KEY (id_tratta,data_volo)
 );
 
 CREATE TABLE Compone(
     progressivo_tratta INTEGER NOT NULL,
-    id_tratta INTEGER REFERENCES Tratta(id_tratta),
-    id_volo INTEGER REFERENCES Volo(id_volo),
+    id_tratta INTEGER REFERENCES Tratta(id_tratta) ON DELETE CASCADE,
+    id_volo INTEGER REFERENCES Volo(id_volo) ON DELETE CASCADE,
     PRIMARY KEY (id_tratta, id_volo)
 );
 
@@ -81,15 +82,15 @@ CREATE TABLE Passeggero(
 
 CREATE TABLE Prenotazione(   
     id_prenotazione INTEGER PRIMARY KEY,
-    passeggero INTEGER REFERENCES Passeggero(id_passeggero),
+    passeggero INTEGER REFERENCES Passeggero(id_passeggero) ON DELETE CASCADE,
     cancellata BOOL,
-    riguarda_volo INTEGER REFERENCES Volo(id_volo),
-    sceglie_classe VARCHAR(10) REFERENCES Classe(nome_classe) 
+    riguarda_volo INTEGER REFERENCES Volo(id_volo) ON DELETE CASCADE,
+    sceglie_classe VARCHAR(10) REFERENCES Classe(nome_classe) ON DELETE CASCADE
 );
 
     
 CREATE TABLE Numero_di_telefono(
-    id_passeggero INTEGER REFERENCES Passeggero(id_passeggero),
+    id_passeggero INTEGER REFERENCES Passeggero(id_passeggero) ON DELETE CASCADE,
     numero VARCHAR(15),
     PRIMARY KEY(id_passeggero, numero)
 );
@@ -98,28 +99,28 @@ CREATE TABLE Comprende(
     posto CHAR(4) NOT NULL,
     id_tratta INTEGER ,
     data_volo DATE NOT NULL,
-    id_prenotazione INTEGER REFERENCES Prenotazione(id_prenotazione),
+    id_prenotazione INTEGER REFERENCES Prenotazione(id_prenotazione) ON DELETE CASCADE,
     PRIMARY KEY (id_tratta, id_prenotazione, data_volo),
-    FOREIGN KEY (id_tratta, data_volo) REFERENCES Istanza_Tratta(id_tratta, data_volo)
+    FOREIGN KEY (id_tratta, data_volo) REFERENCES Istanza_Tratta(id_tratta, data_volo) ON DELETE CASCADE
 );
 
 
     
-CREATE TABLE Accetta( 
-    nome_tipo CHAR(40) REFERENCES Tipo_Aeroplano(nome_tipo),
-    codice_aeroporto CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
+CREATE TABLE Accetta(
+    nome_tipo CHAR(40) REFERENCES Tipo_Aeroplano(nome_tipo) ON DELETE CASCADE,
+    codice_aeroporto CHAR(3) REFERENCES Aeroporto(codice_aeroporto) ON DELETE CASCADE,
     PRIMARY KEY (nome_tipo, codice_aeroporto)
 );
 
 CREATE TABLE Possiede(  
-    codice_aeroplano VARCHAR(10) REFERENCES Aeroplano(codice_aeroplano),
-    id_compagnia CHAR(5) REFERENCES Compagnia_Aerea(id_compagnia),
+    codice_aeroplano VARCHAR(10) REFERENCES Aeroplano(codice_aeroplano) ON DELETE CASCADE,
+    id_compagnia CHAR(5) REFERENCES Compagnia_Aerea(id_compagnia)  ON DELETE CASCADE,
     PRIMARY KEY (codice_aeroplano, id_compagnia)
 );
     
 CREATE TABLE Giorni_della_settimana(  
     giorno INTEGER,
-    id_volo INTEGER REFERENCES Volo(id_volo),
+    id_volo INTEGER REFERENCES Volo(id_volo) ON DELETE CASCADE,
     PRIMARY KEY (giorno, id_volo),
     CHECK (giorno BETWEEN 1 AND 7)
 );
