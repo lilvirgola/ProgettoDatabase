@@ -14,7 +14,7 @@ CREATE TABLE Volo(
     id_volo INTEGER PRIMARY KEY,
     orario_partenza TIME,
     orario_arrivo TIME,
-    id_compagnia CHAR(3) REFERENCES Compagnia_Aerea(id_compagnia)
+    id_compagnia CHAR(3) REFERENCES Compagnia_Aerea(id_compagnia),
     aeroporto_partenza CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
     aeroporto_arrivo CHAR(3) REFERENCES Aeroporto(codice_aeroporto)
 );
@@ -106,7 +106,7 @@ CREATE TABLE Comprende(
 
     
 CREATE TABLE Accetta( 
-    nome_tipo CHAR(20) REFERENCES Tipo_Aeroplano(nome_tipo),
+    nome_tipo CHAR(40) REFERENCES Tipo_Aeroplano(nome_tipo),
     codice_aeroporto CHAR(3) REFERENCES Aeroporto(codice_aeroporto),
     PRIMARY KEY (nome_tipo, codice_aeroporto)
 );
@@ -202,16 +202,16 @@ create or replace function controllo_numero_posti()
         posti_assegnati INTEGER;
     BEGIN
         SELECT posti_rimanenti into posti_disponibili
-        FROM Istanza_Tratta it
-        WHERE it.id_tratta = new.id_tratta
-            AND it.data_volo = new.data_volo;
+        FROM Istanza_Tratta IT
+        WHERE IT.id_tratta = new.id_tratta
+            AND IT.data_volo = new.data_volo;
 
-        IF posti_disponibili == 0 THEN
+        IF posti_disponibili = 0 THEN
             RAISE NOTICE 'Posti assegnati finiti';
             RETURN NULL; 
         END IF;
 
-        UPDATE Istanza_Tratta
+        UPDATE Istanza_Tratta IT
             SET posti_rimanenti = posti_disponibili -1
             where it.id_tratta = new.id_tratta
                 AND it.data_volo = new.data_volo;
