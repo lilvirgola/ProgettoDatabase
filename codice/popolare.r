@@ -6,7 +6,7 @@
 library("RPostgreSQL")
 drv <- dbDriver("PostgreSQL")
 con <- dbConnect(drv, dbname="gestionevoli", user="postgres", password="S3cret")
-set.seed(1234)
+set.seed(100)
 #define function to generate a alphanumeric string range
 # stringrange = function(x,y){
 #     full =unlist(lapply(LETTERS[which(LETTERS==substr(x,1,1)):which(LETTERS==substr(y,1,1))],
@@ -26,7 +26,6 @@ genIdNumber= function(n){
 }
 # set schema to "passeggero"
 dbGetQuery(con, "SET search_path TO public;")
-
 
 
 # populate table Areoporto
@@ -65,10 +64,10 @@ dbGetQuery(con, "SET search_path TO public;")
     )
 
     dbWriteTable(con, 
-                name="compagnia_aerea", 
-                value=Compagnia_Aerea_df, 
-                append = T, 
-                row.names=F)
+        name="compagnia_aerea", 
+        value=Compagnia_Aerea_df, 
+        append = T, 
+        row.names=F)
 
 
 
@@ -100,58 +99,27 @@ dbGetQuery(con, "SET search_path TO public;")
         aeroporto_arrivo = voli_arrivi
     )
 
-    dbWriteTable(con, # da sistemare
+    dbWriteTable(con, 
         name="tratta", 
         value=tratte_df, 
         append = T, 
         row.names=F)
 
 
-
-   
-    concL <- function(l, e){
-        data.frame(
-            id_volo=c(l$id_volo,e$id_volo),
-            orario_partenza=c(l$orario_partenza,e$orario_partenza),
-            orario_arrivo=c(l$orario_arrivo,e$orario_arrivo),
-            aeroporto_partenza = c(l$aeroporto_partenza,e$aeroporto_partenza),
-            aeroporto_arrivo = c(l$aeroporto_arrivo,e$aeroporto_arrivo),
-            id_compagnia= c(l$id_compagnia, e$id_compagnia)
-    )}
-
-    sampleDF <- function(df){
-        df[sample(1:length(df[,1]),1),]
-    }
-
-
-    compone_df <- data.frame(
-        progressivo_tratta=list(),
-        id_tratta=list(),
-        id_volo=list()
-        )
-
-
-    voli_df <- data.frame(
-        id_volo=list(),
-        orario_partenza=list(),
-        orario_arrivo=list(),
-        aeroporto_partenza = list(),
-        aeroporto_arrivo = list(),
-        id_compagnia=list()
-    )
-
+    compone_df <- data.frame()
+    voli_df <- data.frame()
 
     for (id_volo in 1:1000) {
         n_tratte=sample(1:6,1)
 
-        t0 <- sampleDF(tratte_df)
+        t0 <- tratte_df[sample(nrow(tratte_df),1),]
         tc <- t0
 
-        compone_df<- data.frame(
-            progressivo_tratta=c(compone_df$progressivo_tratta,1),
-            id_tratta=c(compone_df$id_tratta,t0$id_tratta),
-            id_volo=c(compone_df$id_volo,id_volo)
-        )
+        compone_df<- rbind(compone_df,data.frame(
+            progressivo_tratta=1,
+            id_tratta=t0$id_tratta,
+            id_volo=id_volo
+        ))
 
         for(progressivo_tratta in 2:n_tratte){
             poss <- subset(tratte_df,(aeroporto_partenza==tc$aeroporto_arrivo) & (orario_partenza>tc$orario_arrivo))
@@ -162,21 +130,20 @@ dbGetQuery(con, "SET search_path TO public;")
             if(length(poss[,1])==1){
                 tc<- poss[1,]
             }else{
-                tc<- sampleDF(poss)
+                tc<- poss[sample(nrow(poss),1),]
             }
-            compone_df<- data.frame(
-                progressivo_tratta=c(compone_df$progressivo_tratta,progressivo_tratta),
-                id_tratta=c(compone_df$id_tratta,tc$id_tratta),
-                id_volo=c(compone_df$id_volo,id_volo)
-            )
+            compone_df<- rbind(compone_df,data.frame(
+                progressivo_tratta=progressivo_tratta,
+                id_tratta=tc$id_tratta,
+                id_volo=id_volo
+            ))
         }
     
-        voli_df <- concL(voli_df, 
-            data.frame(
+        voli_df <- rbind(voli_df,data.frame(
                 id_volo=id_volo,
                 orario_partenza= t0$orario_partenza,
                 orario_arrivo= tc$orario_arrivo,
-                id_compagnia=sample(v_code,1,replace=F),
+                id_compagnia=sample(Compagnia_Aerea_df$id_compagnia,1,replace=F),
                 aeroporto_partenza = t0$aeroporto_partenza,
                 aeroporto_arrivo = tc$aeroporto_arrivo
             ))        
@@ -270,11 +237,6 @@ dbGetQuery(con, "SET search_path TO public;")
         value=aeroplano_df, 
         append = T, 
         row.names=F)
-
-
-
-
-
 
 # populate table Passeggero
     v_nomi <- readLines("dati/nomi.txt")
@@ -380,15 +342,10 @@ dbGetQuery(con, "SET search_path TO public;")
                                     FROM Prenotazione Pr
                                     JOIN Compone C on Pr.riguarda_volo=C.id_volo
                                     GROUP BY id_prenotazione,id_volo")
-    comprende_df <- data.frame(
-        id_tratta=list(),
-        data_volo=list(),
-        id_prenotazione=list(),
-        posto =list()
-    )
+    comprende_df <- data.frame()
 
-    for (i in 1:nrow(voli_prenotati)) {
-        volo <- voli_prenotati[i,]
+    for (id_prenotato in 1:nrow(voli_prenotati)) {
+        volo <- voli_prenotati[id_prenotato,]
         for(prog in 1:volo$n_tratte){
             possibili_tratte <- dbGetQuery(con,
                             gettextf("
@@ -401,35 +358,33 @@ dbGetQuery(con, "SET search_path TO public;")
             comprende_df  <- rbind(comprende_df,data.frame(
                 id_tratta =tratta_usata$id_tratta,
                 data_volo = tratta_usata$data_volo,
-                id_prenotazione =volo$id_volo,
+                id_prenotazione =id_prenotato,
                 posto = sample(1:9999,1)
             ))
-    # se due viaggiano nello stesso posto è possibile, si chiama overbooking
-            
-           
+    # se due viaggiano nello stesso posto è possibile, si chiama overbooking           
         }
     }
     
      dbWriteTable(con, 
-                name="comprende",
-                value=comprende_df, 
-                append = T, 
+        name="comprende",
+        value=comprende_df, 
+        append = T, 
         row.names=F)
 
 
 # populate table Accetta
     combinazioni_scelte <-sample(nrow(tipo_aeroplano_df)*nrow(aeroporto_df),4000)
     accetta_df <- data.frame(
-        nome_tipo = aeroplano_df$codice_aeroplano[(combinazioni_scelte-1) %% nrow(tipo_aeroplano_df)+1],
+        nome_tipo = tipo_aeroplano_df$nome_tipo[((combinazioni_scelte-1) %% nrow(tipo_aeroplano_df))+1],
         codice_aeroporto = aeroporto_df$codice_aeroporto[ceiling(combinazioni_scelte /nrow(tipo_aeroplano_df))]
     )
     
     
-     dbWriteTable(con, 
+    dbWriteTable(con, 
         name="accetta",
         value=accetta_df, 
         append = T, 
-            row.names=F)
+        row.names=F)
 
 
 
@@ -464,103 +419,3 @@ dbGetQuery(con, "SET search_path TO public;")
         value=giorni_della_settimana_df, 
         append = T,
         row.names=F)
-
-
-
-# nome_tipo <- readLines("dati/aeroplani_nome.txt")
-# autonomia_volo <- sample(1000:10000, 100, replace=T)
-# numero_massimo_posti <- sample(100:500, 100, replace=T)
-# nome_azienda_costruttrice <- readLines("dati/aersegretario@esnnaseudine.itoplani_costruttori.txt")
-# dbWriteTable(con, 
-#              name="Tipo_aeroplano", 
-#              value=data.frame(nome_tipo=nome_tipo, autonomia_volo=autonomia_volo), 
-#              append = T, 
-#              row.names=F)
-
-
-
-
-# # populate table Volo
-
-# volo_df <- data.frame(
-#         idvolo = sample(1:100000,100,replace=F),
-#         orario_partenza 
-# )
-
-# #https://stackoverflow.com/questions/71898351/random-timestamp-generation-in-r
-
-# # populate table "iscritto_a"
-# # cdl
-# temp_cdl <- dbGetQuery(con, "SELECT nome FROM corsi_di_laurea;")
-# temp_cdl <- temp_cdl$nome
-# iscritto_a.cdl <- sample(temp_cdl, 10000, replace=T)
-# # matricola
-# temp_matricola <- dbGetQuery(con, "SELECT matricola FROM studenti")
-# iscritto_a.stud <- temp_matricola$matricola
-# # anno
-# iscritto_a.anno <- sample(1978:2023, 10000, replace=T)
-# iscritto_a_df <- data.frame(cdl=iscritto_a.cdl,
-#                             stud=iscritto_a.stud,
-#                             anno=iscritto_a.anno)
-# dbWriteTable(con, name="iscritto_a",
-#                  value=iscritto_a_df, row.names=F, append = T)
-
-# # populate "iscritto_a" with the 1% of previous students, so that 1% of
-# # the students is enrolled to 2 courses
-# # cdl
-# temp_cdl <- dbGetQuery(con, "SELECT nome FROM corsi_di_laurea")
-# temp_cdl <- temp_cdl$nome
-# iscritto_a.cdl <- sample(temp_cdl, 100, replace=T)
-# # matricola
-# temp_matricola <- dbGetQuery(con, "SELECT matricola FROM studenti")
-# temp_matricola <- temp_matricola$matricola
-# iscritto_a.stud <- sample(temp_matricola, 100, replace=F)
-# # anno
-# iscritto_a.anno <- sample(1978:2023, 100, replace=T)
-# iscritto_a_df <- data.frame(cdl=iscritto_a.cdl,
-#                             stud=iscritto_a.stud,
-#                             anno=iscritto_a.anno)
-# # remove the tuples (cdl,stud,anno) in "iscritto_a_df" that are already in
-# # table "iscritto_a"
-# x <- dbGetQuery(con,
-#                  "SELECT cdl,stud,anno
-#                  FROM iscritto_a")
-# iscritto_a_df <- data.frame(setdiff(iscritto_a_df,x))
-# # write table
-# dbWriteTable(con, name="iscritto_a", value=iscritto_a_df,
-#              append=T, row.names=F)
-
-# # plot: "numero iscritti per anno"
-# df <- dbGetQuery(con,
-#                  "SELECT anno, count(*)
-#                  FROM iscritto_a
-#                  GROUP BY anno
-#                  ORDER BY anno")
-# plot(df$anno, df$count, "o")
-
-# # plot: "numero iscritti per anno (1993,1997,1999) e corso di laurea"
-# x11()
-# df <- dbGetQuery(con,
-#                  "SELECT anno, cdl, count(*)
-#                  FROM iscritto_a
-#                  WHERE anno='1993' OR anno='1997' or anno='1999'
-#                  GROUP BY anno, cdl
-#                  ORDER BY anno, cdl")
-# matr <- matrix(df$count, nrow = length(unique(df$cdl)))
-# rownames(matr) <- unique(df$cdl)
-# matr <- t(matr)
-# barplot(matr, beside = TRUE)
-
-# # grafico a barre degli studenti divisi per sesso e corsi di laurea
-# df <- dbGetQuery(con,
-#                  "SELECT cdl, sesso, count(*)
-#                  FROM studenti JOIN iscritto_a ON matricola = stud
-#                  GROUP BY cdl, sesso
-#                  ORDER BY cdl, sesso")
-# matr <- matrix(df$count, nrow = 2)
-# rownames(matr) <- c("f","m")
-# colnames(matr) <- unique(df$cdl)
-# x11()
-# barplot(matr)
-# x11()
-# barplot(matr, beside=T)
