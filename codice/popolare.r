@@ -1,38 +1,29 @@
-#
-# Run this script with "source("script.R")"
-#
-
-# create connection
+# Creo la connessione al database
 library("RPostgreSQL")
 drv <- dbDriver("PostgreSQL")
-con <- dbConnect(drv, dbname="gestionevoli", user="postgres", password="S3cret")
-set.seed(100)
-#define function to generate a alphanumeric string range
-# stringrange = function(x,y){
-#     full =unlist(lapply(LETTERS[which(LETTERS==substr(x,1,1)):which(LETTERS==substr(y,1,1))],
-#             function(x){paste0(x,gettextf(paste0("%02d"),0:99))}))
-#     full[which(full==x):which(full==y)]
-#     }
+con <- dbConnect(drv, dbname="gestionevoli", host="0.0.0.0", port="5432", user="postgres", password="S3cret")
+# Imposto il seed per la riproducibilità
+set.seed(3451)
 
-
-
+# funzione per avere i numeri sottoforma di testo 
 cifre <- gettextf(paste0("%01d"),0:9)
 
+# funzione per generare id alfanumerici
 genIdNumber= function(n){
     unlist(lapply(1:n,
 	   function(x){
 		   paste0(c(sample(cifre,2),sample(cifre,2),sample(LETTERS,6),sample(cifre,5)),collapse="")
 	   }))
 }
-# set schema to "passeggero"
+# Imposto il search path
 dbGetQuery(con, "SET search_path TO public;")
 
 
-# populate table Areoporto
+# Popolo la tabella aeroporto
     v_citta <- readLines("dati/aeroporto_citta.txt")
     v_nazioni <- readLines("dati/nazioni.txt")
     v_nomi_aeroporti <- readLines("dati/aeroporto_nome.txt")
-
+    # funzione per generare codici aeroporti
     prefV=function(v1){
     unlist(lapply(v1,function(x){
         unlist(lapply(LETTERS,function(y){
@@ -56,11 +47,11 @@ dbGetQuery(con, "SET search_path TO public;")
                 append = T, 
                 row.names=F)
 
-# populate table Compagnia Aerea
+# Popolo la tabella Compagnia Aerea
     v_nome <- readLines("dati/compagnie_nomi.txt")
     Compagnia_Aerea_df <- data.frame(
-        id_compagnia = sample(v_code,80,replace=F),
-        nome = sample(v_nome,80,replace=F)
+        id_compagnia = sample(v_code,30,replace=F),
+        nome = sample(v_nome,30,replace=F)
     )
 
     dbWriteTable(con, 
@@ -73,7 +64,7 @@ dbGetQuery(con, "SET search_path TO public;")
 
 
 
-# populate table tratta, volo, compone
+# Popolo la tabella tratta, volo, compone
 
     tratte <- dbGetQuery(con, "SELECT a1.codice_aeroporto as C1, a2.codice_aeroporto as C2 
                                 FROM Aeroporto A1, Aeroporto A2 
@@ -83,7 +74,7 @@ dbGetQuery(con, "SET search_path TO public;")
     voli_arrivi <- tratte$c2[selected]
     id_tratte=1:1000
 
-
+    # funzione per generare orari
     genTime <- function(){
         hs <- sample(0:22,1)
         ms <- sample(0:57,1)
@@ -161,7 +152,7 @@ dbGetQuery(con, "SET search_path TO public;")
         append = T, 
         row.names=F)
 
-# populate table Classe
+# Popolo la tabella Classe
     classi <- readLines("dati/classi.txt")
     voli_classi <- c(voli_df$id_volo,sample(voli_df$id_volo,200,replace=T))
     volo_classe_df <- data.frame(
@@ -196,7 +187,7 @@ dbGetQuery(con, "SET search_path TO public;")
         row.names=F)
 
 
-# populate table Tipo aeroplano
+# Popolo la tabella Tipo aeroplano
     nomi_tipo <- readLines("dati/aeroplani_nome.txt")
     nomi_costruttori <- readLines("dati/aeroplani_costruttori.txt")
     
@@ -220,7 +211,7 @@ dbGetQuery(con, "SET search_path TO public;")
     # select count(*) from tratte t1, tratte t2, tratte t3 where t1.aeroporto_arrivo = t2.aeroporto_partenza and t2.aeroporto_arrivo = t3.aeroporto_partenza and t1.orario_arrivo < t2.orario_partenza and t2.orario_arrivo<t3.orario_partenza
 
 
-# populate table aeroplano
+# Popolo la tabella aeroplano
     aeroplani<-tipo_aeroplano_df[sample(1:70,200,replace=T),];
     codici_aeroplani <- unlist(lapply(1:220,
 	   function(x){
@@ -238,7 +229,7 @@ dbGetQuery(con, "SET search_path TO public;")
         append = T, 
         row.names=F)
 
-# populate table Passeggero
+# Popolo la tabella Passeggero
     v_nomi <- readLines("dati/nomi.txt")
     v_cognomi <- readLines("dati/cognomi.txt")
     codici_documenti <- unlist(lapply(1:1550,
@@ -262,7 +253,7 @@ dbGetQuery(con, "SET search_path TO public;")
 
 
 
- # populate table numero_telefono
+ # Popolo la tabella numero_telefono
     id_passeggeri_numeri <- c(id_passeggeri,sample(id_passeggeri,400,replace=T))
     numeri <- sample(10^10, length(id_passeggeri_numeri))
     numeri_telefono_df <- data.frame(
@@ -276,7 +267,7 @@ dbGetQuery(con, "SET search_path TO public;")
         append = T, 
         row.names=F)
 
-# populate table istanza_tratta
+# Popolo la tabella istanza_tratta
     aeroplani_disponibili <- dbGetQuery(con,"SELECT codice_aeroplano,posti_effettivi 
                                             FROM aeroplano")
     aeroplani_usati <- aeroplani_disponibili[sample(nrow(aeroplani_disponibili),8000,replace=T),]
@@ -300,7 +291,7 @@ dbGetQuery(con, "SET search_path TO public;")
         row.names=F)
 
 
-# populate prenotazione
+# Popolo la tabella prenotazione
     id_prenotazioni  <- 1:500
     prenotazione_volo <- dbGetQuery(con,"SELECT id_volo,classe 
                                         FROM volo V
@@ -313,6 +304,7 @@ dbGetQuery(con, "SET search_path TO public;")
                                                     SELECT *
                                                     FROM Istanza_Tratta IT
                                                     WHERE IT.id_tratta=C.id_tratta
+                                                    AND IT.posti_rimanenti > 0
                                                 )
                                         )")
 
@@ -336,7 +328,7 @@ dbGetQuery(con, "SET search_path TO public;")
     row.names=F)
 
 
-# populate Comprende
+# Popolo la tabella Comprende
 
     voli_prenotati <- dbGetQuery(con,"SELECT MAX(progressivo_tratta) AS n_tratte,id_prenotazione, id_volo
                                     FROM Prenotazione Pr
@@ -372,7 +364,7 @@ dbGetQuery(con, "SET search_path TO public;")
         row.names=F)
 
 
-# populate table Accetta
+# Popolo la tabella Accetta
     combinazioni_scelte <-sample(nrow(tipo_aeroplano_df)*nrow(aeroporto_df),4000)
     accetta_df <- data.frame(
         nome_tipo = tipo_aeroplano_df$nome_tipo[((combinazioni_scelte-1) %% nrow(tipo_aeroplano_df))+1],
@@ -388,7 +380,7 @@ dbGetQuery(con, "SET search_path TO public;")
 
 
 
-# populate table possiede
+# Popolo la tabella possiede
     combinazioni_scelte <-sample(nrow(aeroplano_df)*nrow(Compagnia_Aerea_df),4000)
     possiede_df <- data.frame(
         codice_aeroplano = aeroplano_df$codice_aeroplano[(combinazioni_scelte-1) %% nrow(aeroplano_df)+1],
@@ -403,7 +395,7 @@ dbGetQuery(con, "SET search_path TO public;")
         row.names=F)
 
 
-#populate table Giorni_della_settimana
+# Popolo la tabella Giorni_della_settimana
     giorni_della_settimana_df <- data.frame(giorno=list(),id_volo=list())
     id_voli <- dbGetQuery(con,"SELECT id_volo FROM volo")$id_volo
     for(id_volo in id_voli){

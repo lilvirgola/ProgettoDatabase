@@ -1,2 +1,3 @@
 #!/bin/bash
-psql -U postgres -d gestionevoli 
+# Script per aprire il database
+psql -U postgres -h "0.0.0.0" -p "5432" -d gestionevoli 
