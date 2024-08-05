@@ -1,4 +1,4 @@
--- query 1 : trovare tutti gli aeroporti in cui è passato mario rossi con voli diretti a Huanggang
+-- query 1 : trovare tutti gli aeroporti in cui è passato clorindo scipione con voli diretti a Huanggang
 
 SELECT A.nome
 FROM Passeggero P
