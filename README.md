@@ -12,7 +12,7 @@ e quando si ha finito per riattivarlo basta usare:
 `sudo systemctl start postgresql.service`
 # Creare il container
 per creare il container basta avere installato docker nel sistema e nella folder principale usare:
-`sudo docker compose up -d --build`
+`sudo docker compose up -d`
 per fermarlo basterà usare:
 `sudo docker compose down`
 si noti che il database è salvato in un volume e quindi anche se si chiude il container i dati non si perdono
