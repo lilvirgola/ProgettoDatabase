@@ -1,6 +1,9 @@
 # Database folder
 postgres/
 
+# Txt files
+*.txt
+
 # History files
 .Rhistory
 .Rapp.history

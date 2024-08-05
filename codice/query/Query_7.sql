@@ -1,5 +1,4 @@
 -- query 7 : Selezionare una istanza per ogni tratta che è compresa da una prenotazione:
-
 SELECT *
 FROM Compone C 
 JOIN Istanza_Tratta IT on IT.id_tratta=C.id_tratta

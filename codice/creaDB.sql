@@ -1,3 +1,4 @@
+-- PARTE 1: Creazione delle tabelle
 CREATE TABLE Compagnia_Aerea(
     id_compagnia CHAR(3) PRIMARY KEY,
     nome VARCHAR (20) NOT NULL
@@ -20,7 +21,6 @@ CREATE TABLE Volo(
     CONSTRAINT orari_validi CHECK (orario_partenza < orario_arrivo )
 );
 
-
 Create table Classe(
     nome_classe VARCHAR(10) PRIMARY KEY    
 );
@@ -32,15 +32,12 @@ CREATE TABLE Dispone_Classe(
     PRIMARY KEY (volo,classe)
 );
 
-
 CREATE TABLE Tipo_aeroplano(
     nome_tipo CHAR(40) PRIMARY KEY,
     autonomia_volo INTEGER,
     numero_massimo_posti INTEGER NOT NULL,
     nome_azienda_costruttrice VARCHAR(25) NOT NULL
 );
-
-    
 
 CREATE TABLE Aeroplano(
     codice_aeroplano VARCHAR(10) PRIMARY KEY,
@@ -103,8 +100,6 @@ CREATE TABLE Comprende(
     PRIMARY KEY (id_tratta, id_prenotazione, data_volo),
     FOREIGN KEY (id_tratta, data_volo) REFERENCES Istanza_Tratta(id_tratta, data_volo) ON DELETE CASCADE
 );
-
-
     
 CREATE TABLE Accetta(
     nome_tipo CHAR(40) REFERENCES Tipo_Aeroplano(nome_tipo) ON DELETE CASCADE,
@@ -125,6 +120,31 @@ CREATE TABLE Giorni_della_settimana(
     CHECK (giorno BETWEEN 1 AND 7)
 );
 
+-- PARTE 2: Creazione degli indici
+
+-- Indici sulle foreign key (la documentazione di postgres suggerisce di crearli)
+CREATE INDEX Volo_id_compagnia_aerea_idx ON Volo(id_compagnia);
+CREATE INDEX Volo_aeroporto_partenza_idx ON Volo(aeroporto_partenza);
+CREATE INDEX Volo_aeroporto_arrivo_idx ON Volo(aeroporto_arrivo);
+CREATE INDEX dispone_classe_classe_idx ON dispone_classe(classe); 
+CREATE INDEX Aeroplano_tipo_aeroplano_idx ON Aeroplano(tipo_aeroplano);
+CREATE INDEX Tratta_aeroporto_partenza_idx ON Tratta(aeroporto_partenza);
+CREATE INDEX Tratta_aeroporto_arrivo_idx ON Tratta(aeroporto_arrivo);
+CREATE INDEX Istanza_Tratta_aereo_usato_idx ON Istanza_Tratta(aereo_usato);
+CREATE INDEX Prenotazione_passeggero_idx ON Prenotazione(passeggero);
+CREATE INDEX Prenotazione_volo_idx ON Prenotazione(riguarda_volo);
+CREATE INDEX Prenotazione_classe_idx ON Prenotazione(sceglie_classe);
+CREATE INDEX Comprende_prenotazione_idx ON Comprende(id_prenotazione);
+
+-- Indici sclti per migliorare le performance delle query
+
+CREATE INDEX Volo_orario_partenza_idx ON Volo(orario_partenza);
+CREATE INDEX Volo_orario_arrivo_idx ON Volo(orario_arrivo);
+CREATE INDEX Passeggero_nome_idx ON Passeggero(nome);
+CREATE INDEX Passeggero_cognome_idx ON Passeggero(cognome);
+
+
+-- PARTE 3: Creazione dei trigger
 
 CREATE OR REPLACE FUNCTION controllo_successione()
     RETURNS Trigger LANGUAGE plpgsql as 
@@ -155,7 +175,6 @@ CREATE OR REPLACE FUNCTION controllo_successione()
         RETURN new;
     END
 $$ ;
-
 
 CREATE TRIGGER controllo_successione_trigger
 BEFORE INSERT OR UPDATE ON Compone
@@ -208,13 +227,10 @@ CREATE OR REPLACE FUNCTION controllo_voli_inizio()
     END
 $$ ;
 
-
 CREATE TRIGGER controllo_voli_inizio_trigger
 BEFORE INSERT OR UPDATE ON Volo
 FOR EACH row
 EXECUTE PROCEDURE controllo_voli_inizio();
-
-
 
 CREATE OR REPLACE FUNCTION controllo_numero_posti()
     RETURNS Trigger LANGUAGE plpgsql AS 
@@ -241,9 +257,7 @@ CREATE OR REPLACE FUNCTION controllo_numero_posti()
     END
 $$ ;
 
-
-
 CREATE TRIGGER controllo_numero_posti_trigger
 BEFORE INSERT OR UPDATE ON Comprende
-FOR EACH row
+FOR EACH ROW
 EXECUTE PROCEDURE controllo_numero_posti();
