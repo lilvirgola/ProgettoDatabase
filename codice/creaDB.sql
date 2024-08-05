@@ -127,7 +127,7 @@ CREATE INDEX Volo_id_compagnia_aerea_idx ON Volo(id_compagnia);
 CREATE INDEX Volo_aeroporto_partenza_idx ON Volo(aeroporto_partenza);
 CREATE INDEX Volo_aeroporto_arrivo_idx ON Volo(aeroporto_arrivo);
 CREATE INDEX dispone_classe_classe_idx ON dispone_classe(classe); 
-CREATE INDEX Aeroplano_tipo_aeroplano_idx ON Aeroplano(tipo_aeroplano);
+CREATE INDEX Aeroplano_tipo_aeroplano_idx ON Aeroplano(tipo_aereo);
 CREATE INDEX Tratta_aeroporto_partenza_idx ON Tratta(aeroporto_partenza);
 CREATE INDEX Tratta_aeroporto_arrivo_idx ON Tratta(aeroporto_arrivo);
 CREATE INDEX Istanza_Tratta_aereo_usato_idx ON Istanza_Tratta(aereo_usato);
