@@ -1,5 +1,5 @@
 -- query 6 : Trovare tutti i voli che sono effettuabili (per cui esiste una istanza per ogni tratta che ha posti disponibili)
-SELECT id_volo,classe 
+SELECT DISTINCT id_volo,classe 
 FROM volo V
 JOIN dispone_classe DC ON DC.volo=V.id_volo
 WHERE NOT EXISTS(
