@@ -122,7 +122,7 @@ CREATE TABLE Giorni_della_settimana(
 
 -- PARTE 2: Creazione degli indici
 
--- Indici sulle foreign key (la documentazione di postgres suggerisce di crearli)
+-- Indici sulle foreign key 
 CREATE INDEX Volo_id_compagnia_aerea_idx ON Volo(id_compagnia);
 CREATE INDEX Volo_aeroporto_partenza_idx ON Volo(aeroporto_partenza);
 CREATE INDEX Volo_aeroporto_arrivo_idx ON Volo(aeroporto_arrivo);
@@ -136,7 +136,7 @@ CREATE INDEX Prenotazione_volo_idx ON Prenotazione(riguarda_volo);
 CREATE INDEX Prenotazione_classe_idx ON Prenotazione(sceglie_classe);
 CREATE INDEX Comprende_prenotazione_idx ON Comprende(id_prenotazione);
 
--- Indici sclti per migliorare le performance delle query
+-- Indici scelti per migliorare le performance delle query
 
 CREATE INDEX Volo_orario_partenza_idx ON Volo(orario_partenza);
 CREATE INDEX Volo_orario_arrivo_idx ON Volo(orario_arrivo);
